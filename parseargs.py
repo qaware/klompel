@@ -143,7 +143,7 @@ def do_the_args_thing(argv):
         "--min-duration",
         dest="min_duration",
         type=float,
-        default=0.2,
+        default=3,
         help="Min duration of a valid audio event in seconds "
              "[default: %(default)s]",
         metavar="FLOAT",
@@ -153,7 +153,7 @@ def do_the_args_thing(argv):
         "--max-duration",
         dest="max_duration",
         type=float,
-        default=5,
+        default=8,
         help="Max duration of a valid audio event in seconds "
              "[default: %(default)s]",
         metavar="FLOAT",
@@ -163,7 +163,7 @@ def do_the_args_thing(argv):
         "--max-silence",
         dest="max_silence",
         type=float,
-        default=0.3,
+        default=0.8,
         help="Max duration of a consecutive silence within a valid audio "
              "event in seconds [default: %(default)s]",
         metavar="FLOAT",

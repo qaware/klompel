@@ -1,7 +1,13 @@
-from auditok import ADSFactory, AudioEnergyValidator, StreamTokenizer, player_for
+import io
+import logging
+import wave
+
+import requests
 from auditok import workers
 from auditok.cmdline_util import make_kwargs, initialize_workers
-import logging
+from auditok.workers import Worker
+
+from blinker import Blinker
 from parseargs import do_the_args_thing
 
 
@@ -11,32 +17,61 @@ def main():
     args = do_the_args_thing([])
 
     kwargs = make_kwargs(args)
+    kwargs.split["min_dur"] = 0.5
+    kwargs.split["drop_trailing_silence"] = True
     reader, observers = initialize_workers(
         logger=logger, **kwargs.io, **kwargs.miscellaneous
     )
+    observers.append(EVPWorker())
+    # observers.append(RegionSaverWorker(
+    #     'Event_{id}_{start}-{end}_{duration:.3f}.wav',
+    #     "wav"
+    # ))
     tokenizer_worker = workers.TokenizerWorker(
         reader, observers, logger=logger, **kwargs.split
     )
     tokenizer_worker.start_all()
 
+class EVPWorker(Worker):
+
+    def __init__(self):
+        self.blinker = Blinker()
+        Worker.__init__(self)
+
+    def _process_message(self, message):
+        _, audio_region = message
+
+        LOCAL = 'http://localhost:5000/api/audio'
+        REMOTE = 'https://eurovision.qaware.de/api/audio'
+
+        res = requests.post(url=REMOTE,
+                            data=self.get_wav_bytes(message),
+                            headers={'Content-Type': 'application/octet-stream'})
+        if res.ok:
+            result = res.json()
+            intent = result["nlu_result"]["intent"]
+            if intent == "TOI_OCC":
+                self.blinker.set_occupied(True)
+            elif intent == "TOI_FREE":
+                self.blinker.set_occupied(False)
+            else:
+                self.blinker.restore()
+        else:
+            self.blinker.restore()
 
 
-# asource = ADSFactory.ads(rec=True) #max_time ?
-#
-# # validator = AudioEnergyValidator(sample_width=asource.get_sample_width(), energy_threshold=50)
-# validator = AudioEnergyValidator(sample_width=2, energy_threshold=50)
-# tokenizer = StreamTokenizer(validator=validator, min_length=20, max_length=250, max_continuous_silence=30)
-#
-# player = player_for(asource)
-#
-# def echo(data, start, end):
-#     print("Acoustic activity at: {0}--{1}".format(start, end))
-#     player.play(''.join(data))
-#
-# asource.open()
-#
-# tokenizer.tokenize(asource, callback=echo)
+    def get_wav_bytes(self, message):
+        audio_region = message[1]
+        bytez = io.BytesIO()
 
+        with wave.open(bytez, "wb") as fp:
+            fp.setframerate(audio_region.sampling_rate)
+            fp.setsampwidth(audio_region.sample_width)
+            fp.setnchannels(audio_region.channels)
+            fp.writeframes(audio_region._data)
+        data = bytez.getvalue()
+        bytez.close()
+        return data
 
 if __name__ == '__main__':
     main()
