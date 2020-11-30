@@ -18,7 +18,7 @@ def main():
 
     kwargs = make_kwargs(args)
     kwargs.split["min_dur"] = 0.5
-    kwargs.split["drop_trailing_silence"] = True
+    # kwargs.split["drop_trailing_silence"] = True
     reader, observers = initialize_workers(
         logger=logger, **kwargs.io, **kwargs.miscellaneous
     )
