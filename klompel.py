@@ -43,7 +43,7 @@ class EVPWorker(Worker):
 
         LOCAL = 'http://localhost:5000/api/audio'
         REMOTE = 'https://eurovision.qaware.de/api/audio'
-
+        self.blinker.set_waiting()
         res = requests.post(url=REMOTE,
                             data=self.get_wav_bytes(message),
                             headers={'Content-Type': 'application/octet-stream'})
