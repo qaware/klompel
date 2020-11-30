@@ -8,6 +8,7 @@ class Blinker():
         self.blink = Blink1()
         self.blink.write_pattern_line(100, 'yellow', 1)
         self.blink.write_pattern_line(100, 'black', 2)
+        self.set_occupied(False)
 
     def set_waiting(self):
         self.blink.play(1,2,0)
