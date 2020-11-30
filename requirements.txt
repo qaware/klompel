@@ -1,0 +1,2 @@
+auditok @ git+https://github.com/amsehili/auditok@9a5e1e6fae7c51bdb4ff3e9094a2183ac83beee6
+PyAudio==0.2.11
