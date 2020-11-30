@@ -47,6 +47,8 @@ class EVPWorker(Worker):
         res = requests.post(url=REMOTE,
                             data=self.get_wav_bytes(message),
                             headers={'Content-Type': 'application/octet-stream'})
+        print(res.ok)
+        print(res.json())
         if res.ok:
             result = res.json()
             intent = result["nlu_result"]["intent"]
