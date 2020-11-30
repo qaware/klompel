@@ -47,11 +47,10 @@ class EVPWorker(Worker):
         res = requests.post(url=REMOTE,
                             data=self.get_wav_bytes(message),
                             headers={'Content-Type': 'application/octet-stream'})
-        print(res.ok)
-        print(res.json())
         if res.ok:
             result = res.json()
             intent = result["nlu_result"]["intent"]
+            print(f"{intent}: {result['stt_result']['text']}")
             if intent == "TOI_OCC":
                 self.blinker.set_occupied(True)
             elif intent == "TOI_FREE":
@@ -59,6 +58,7 @@ class EVPWorker(Worker):
             else:
                 self.blinker.restore()
         else:
+            print("request failed")
             self.blinker.restore()
 
 
